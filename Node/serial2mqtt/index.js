@@ -5,13 +5,22 @@ inspired by Tom Igoe: https://itp.nyu.edu/physcomp/labs/labs-serial-communicatio
 
 
 var mqtt = require('mqtt');
-var mqtt_server_url = 'mqtt://test.mosquitto.org';
+
+//var mqtt_server_url = 'mqtt://test.mosquitto.org';
+//var mqtt_server_url = 'mqtt://m21.cloudmqtt.com';
+var mqtt_server_url = 'mqtt://192.168.2.222';
+
 var mqtt_channel = 'workshop';
 var mqtt_clientname = 'myname';
 
+var options = {
+  port: 1883,
+  clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
+  //username: 'IoT',
+  //password: 'workshop',
+};
 
-
-var client  = mqtt.connect(mqtt_server_url);
+var client  = mqtt.connect(mqtt_server_url, options);
  
 client.on('connect', function () {
   client.subscribe(mqtt_channel)
@@ -19,9 +28,9 @@ client.on('connect', function () {
 })
  
 client.on('message', function (topic, message) {
-  // message is Buffer 
   console.log("from MQTT:"+message.toString());
-  //client.end();
+  myPort.write(message.toString());
+    //client.end();
 })
 
 
@@ -62,15 +71,17 @@ function showPortOpen() {
  
 function sendSerialData(data) {
    console.log("from serial: "+data);
-   if(m.indexOf(";")===-1)
+   if(data.indexOf(":")===-1)
    {
        console.log("ERROR: serial message is not compatible!");
        return;
    }
-    var m = data.split(";");
+    var m = data.split(":");
     for(var i=0; i<m.length;i=i+2)
     {
-        client.publish(m[i], m[i+1]);         
+        console.log("publishing: "+m[1])
+        //client.publish('workshop/'+m[i], m[i+1]);
+        client.publish(mqtt_channel, m[i+1]);
     }
 }
  
